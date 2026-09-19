@@ -4,12 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from src.security import input_validation, limits, log_redaction, model_integrity
-
-
-def test_validate_video_size_not_yet_implemented() -> None:
-    with pytest.raises(NotImplementedError):
-        limits.validate_video_size(size_bytes=1, max_video_size_mb=1)
+from src.security import input_validation, log_redaction, model_integrity
 
 
 def test_verify_sha256_not_yet_implemented() -> None:

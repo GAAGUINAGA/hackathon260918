@@ -1,1 +1,5 @@
 pydantic==2.13.5
+pydantic-settings
+pyyaml
+numpy
+opencv-python-headless

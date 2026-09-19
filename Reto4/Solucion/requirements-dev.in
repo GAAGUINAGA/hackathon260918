@@ -10,3 +10,4 @@ safety
 detect-secrets
 pre-commit
 pip-tools
+types-PyYAML

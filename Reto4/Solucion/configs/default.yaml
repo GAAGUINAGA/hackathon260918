@@ -1,0 +1,5 @@
+inference_rate: 5
+resolution_target: [640, 640]
+max_video_size_mb: 8192
+allowed_video_extensions: [".mp4", ".mkv", ".avi"]
+frame_queue_maxsize: 5
