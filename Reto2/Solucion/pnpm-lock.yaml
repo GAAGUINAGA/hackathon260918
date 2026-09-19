@@ -234,6 +234,9 @@ importers:
       '@ssot/domain':
         specifier: workspace:*
         version: link:../domain
+      neverthrow:
+        specifier: ^8.2.0
+        version: 8.2.0
 
   packages/contracts: {}
 

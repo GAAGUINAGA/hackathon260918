@@ -30,6 +30,33 @@ module.exports = {
       },
     },
     {
+      name: "domain-no-node-core",
+      comment:
+        "packages/domain/src no puede importar modulos nativos de Node (fs, http, crypto, ...): son infraestructura, no dominio puro (ADR-09).",
+      severity: "error",
+      from: { path: "^packages/domain/src" },
+      to: { dependencyTypes: ["core"] },
+    },
+    {
+      name: "application-no-external-deps",
+      comment:
+        "packages/application/src no puede importar dependencias externas de node_modules, salvo la lista blanca explicita (neverthrow) y el propio @ssot/domain (ADR-09).",
+      severity: "error",
+      from: { path: "^packages/application/src" },
+      to: {
+        path: "node_modules",
+        pathNot: "node_modules/(\\.pnpm/)?neverthrow",
+      },
+    },
+    {
+      name: "application-no-node-core",
+      comment:
+        "packages/application/src no puede importar modulos nativos de Node: la orquestacion de casos de uso no invoca infraestructura real (ADR-09).",
+      severity: "error",
+      from: { path: "^packages/application/src" },
+      to: { dependencyTypes: ["core"] },
+    },
+    {
       name: "no-llm-in-domain",
       comment:
         "packages/domain no puede importar librerias de IA/LLM bajo ningun alias (ADR-20: la IA es aditiva y diferida a F7).",

@@ -11,16 +11,31 @@ especificación completa. El flujo de desarrollo/auditoría está en
 verificación (TypeScript estricto, ESLint, dependency-cruiser, gitleaks,
 Semgrep) y CI configurados.
 
-**Fase 1 — Anillo 0 (Dominio puro), en curso.** `packages/domain` implementa:
+**Fase 1 — Anillo 0 (Dominio puro).** Cerrada. `packages/domain` implementa:
 - `EmailAddress` / `PhoneNumber` (Value Objects, ADR-10, `Result<T,E>` vía `neverthrow`).
 - Normalizaciones NFKC / unaccent / E.164 (`shared/text-normalization.ts`, `value-objects/calling-codes.ts`).
 - Motor de puntuación de deduplicación determinista (`dedup/`), señales B1-B4
   (UC-03) incluyendo el dominio emparentado de ADR-18a
   (`value-objects/email-domain-relatedness.ts`), con la tabla de alias
   inyectada como dato puro (la real vive en infraestructura, Fase 3).
+- `Contact` (agregado raíz, UC-01/UC-13): fábrica cerrada que exige al menos
+  un identificador significativo y retiro lógico (`state`/`withdrawnAt`, RT-14).
 - Cero dependencias externas salvo `neverthrow`, verificado mecánicamente por
   `dependency-cruiser` (`domain-is-pure`, `domain-no-external-deps`,
-  `no-llm-in-domain`).
+  `domain-no-node-core`, `no-llm-in-domain`).
+
+**Fase 2 — Anillo 1 (Casos de uso y aplicación), en curso.** `packages/application` implementa:
+- `ActorContext` (RT-01): `ownerId` resuelto siempre del contexto verificado,
+  nunca de un parámetro suelto.
+- Puertos de salida: `ContactRepositoryPort`, `ContactQueryPort` (un puerto
+  por agregado, DTO planos, ADR-19a), `ContactProviderPort` (declarado,
+  Google People API llega en Fase 3), `OutboxPort` (RT-04). Puertos diferidos
+  `LlmPort`/`EmbeddingPort` declarados sin adaptador (ADR-20).
+- `CrearContacto` (UC-01) orquestando dominio + puertos, probado con dobles
+  de prueba en memoria (`test/doubles/`), sin infraestructura real.
+- `dependency-cruiser` extiende `application-no-external-deps` y
+  `application-no-node-core`: el anillo 1 tampoco puede importar Node core
+  ni paquetes npm arbitrarios (solo `@ssot/domain` + `neverthrow`).
 
 **Ubicación del workflow de CI.** `Reto2/Solucion` es un subdirectorio de un
 monorepo que aloja varios retos. GitHub Actions **solo** descubre workflows

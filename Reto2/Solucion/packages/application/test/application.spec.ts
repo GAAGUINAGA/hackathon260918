@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-describe("packages/application smoke test (Fase 0)", () => {
+describe("packages/application smoke test", () => {
   it("carga el paquete y resuelve @ssot/domain", async () => {
     const mod = await import("../src/index.js");
     expect(mod).toBeDefined();
   });
 });
 
-describe.todo("ActorContext y politica de autorizacion RT-01 (Fase 2)");
-describe.todo("ContactRepositoryPort - doble en memoria (Fase 2)");
-describe.todo("ContactQueryPort por agregado, owner_id no parametrizable (Fase 2, ADR-19a)");
-describe.todo("Puertos diferidos LlmPort / EmbeddingPort declarados sin adaptador (Fase 2, ADR-20)");
+// ActorContext/RT-01, ContactRepositoryPort y CrearContacto (UC-01):
+// use-cases/crear-contacto.spec.ts. ContactQueryPort/ContactProviderPort/
+// LlmPort/EmbeddingPort: declarados en src/ports/, sin adaptador ni
+// invocacion (ADR-19a, ADR-20) hasta Fase 3/4/7 respectivamente.

@@ -13,6 +13,14 @@ export {
   trigramSimilarity,
 } from "./shared/text-normalization.js";
 
+export type {
+  ContactEmailEntry,
+  ContactPhoneEntry,
+  ContactStatus,
+  CreateContactParams,
+} from "./entities/contact.js";
+export { Contact } from "./entities/contact.js";
+
 export { EmailAddress } from "./value-objects/email-address.js";
 export {
   areDomainsRelated,

@@ -19,9 +19,9 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@ssot/domain": "workspace:*"
+    "@ssot/domain": "workspace:*",
+    "neverthrow": "^8.2.0"
   },
-  "devDependencies": {},
   "files": [
     "dist"
   ]
