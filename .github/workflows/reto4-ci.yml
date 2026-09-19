@@ -1,0 +1,36 @@
+name: Reto 4 — Motor Analitico Edge CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Reto4/Solucion/**"
+      - ".github/workflows/reto4-ci.yml"
+  pull_request:
+    paths:
+      - "Reto4/Solucion/**"
+      - ".github/workflows/reto4-ci.yml"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: Reto4/Solucion
+
+concurrency:
+  group: reto4-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint · Typecheck · Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.10' }
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: black --check src/ tests/ scripts/
+      - run: flake8 src/ tests/ scripts/
+      - run: ruff check src/ tests/ scripts/
+      - run: mypy src/
+      - run: pytest tests/ -v --cov=src --cov-fail-under=80
