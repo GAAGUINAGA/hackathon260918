@@ -7,7 +7,7 @@ useDefault = true
 description = "Rutas de ejemplo/documentacion sin secretos reales"
 paths = [
   '''infra/\.env\.example''',
-  '''\.claude/.*''',
+  '''\.claude/.*\.md''',
 ]
 
 [[rules]]

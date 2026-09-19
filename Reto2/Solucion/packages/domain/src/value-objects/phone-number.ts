@@ -52,6 +52,22 @@ export class PhoneNumber {
       return ok(new PhoneNumber(trimmed, null, false));
     }
 
+    // La entrada puede ya incluir el código de país sin "+" (p. ej.
+    // "593991234567" o "(593) 991-234-567"). Anteponer el código de nuevo en
+    // ese caso corrompería el E.164 (doble prefijo). Si la parte significativa
+    // ya empieza por el código de la región y el resto tiene una longitud
+    // nacional plausible, se trata como ya internacional.
+    if (digitsOnlyPart.startsWith(callingCode)) {
+      const remainderAfterCallingCode = digitsOnlyPart.slice(callingCode.length);
+      const maxNationalDigits = MAX_E164_DIGITS - callingCode.length;
+      if (
+        remainderAfterCallingCode.length >= MIN_SIGNIFICANT_DIGITS &&
+        remainderAfterCallingCode.length <= maxNationalDigits
+      ) {
+        return ok(new PhoneNumber(trimmed, `+${digitsOnlyPart}`, true));
+      }
+    }
+
     const nationalNumber = digitsOnlyPart.startsWith("0") ? digitsOnlyPart.slice(1) : digitsOnlyPart;
     const combined = `${callingCode}${nationalNumber}`;
     if (combined.length > MAX_E164_DIGITS || nationalNumber.length === 0) {

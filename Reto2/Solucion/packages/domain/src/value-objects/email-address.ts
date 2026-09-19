@@ -1,7 +1,7 @@
 import { err, ok, type Result } from "neverthrow";
 import { validationError, type ValidationError } from "../errors/validation-error.js";
 import { toNFKC } from "../shared/text-normalization.js";
-import { getRegistrableDomain, isFreeEmailProvider } from "./email-domain-relatedness.js";
+import { getRegistrableDomain } from "./email-domain-relatedness.js";
 
 const MAX_TOTAL_LENGTH = 254;
 const MAX_LOCAL_PART_LENGTH = 64;
@@ -96,5 +96,3 @@ function normalizeLocalKeyForDomain(localPart: string, domain: string): string {
   }
   return key;
 }
-
-export { isFreeEmailProvider };

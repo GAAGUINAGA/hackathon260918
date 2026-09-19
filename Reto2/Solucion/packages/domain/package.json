@@ -3,13 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Anillo 0 - Entidades, value objects y reglas puras. Cero dependencias externas.",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "description": "Anillo 0 - Entidades, value objects y reglas puras. Unica dependencia externa autorizada: neverthrow (ADR-10, Result<T,E>).",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
@@ -20,5 +20,8 @@
   },
   "dependencies": {
     "neverthrow": "^8.2.0"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }

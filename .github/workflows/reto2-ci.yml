@@ -1,0 +1,81 @@
+name: Reto 2 — SSOT Contacts CI
+
+on:
+  push:
+    paths:
+      - "Reto2/Solucion/**"
+      - ".github/workflows/reto2-ci.yml"
+  pull_request:
+    paths:
+      - "Reto2/Solucion/**"
+      - ".github/workflows/reto2-ci.yml"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: Reto2/Solucion
+
+concurrency:
+  group: reto2-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint · Typecheck · Dependency rules · Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (ESLint)
+        run: pnpm run lint
+
+      - name: Build (tsc, emite dist/ que consumen los paquetes dependientes)
+        run: pnpm run build
+
+      - name: Typecheck (tsc, resuelve paquetes del workspace via dist/)
+        run: pnpm run typecheck
+
+      - name: Dependency rule (dependency-cruiser — no-llm-in-domain, anillos)
+        run: pnpm run dep-cruise
+
+      - name: Tests (Vitest)
+        run: pnpm run test
+
+  secrets-scan:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: Reto2/Solucion/.gitleaks.toml
+
+  sast-scan:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep scan (reglas propias + registro de seguridad)
+        working-directory: .
+        run: |
+          semgrep scan \
+            --config Reto2/Solucion/.semgrep.yml \
+            --config p/security-audit \
+            --config p/typescript \
+            --error \
+            Reto2/Solucion
