@@ -2,7 +2,7 @@ name: Reto 4 — Motor Analitico Edge CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, RETO-4_VISION-ARTIFICIAL]
     paths:
       - "Reto4/Solucion/**"
       - ".github/workflows/reto4-ci.yml"
