@@ -1,0 +1,37 @@
+rules:
+  - id: ssot-no-raw-sql-interpolation
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      sql.raw()/sql() con interpolacion de cadenas detectado. Toda sentencia
+      SQL debe ir parametrizada via Drizzle (ADR-03, ADR-11). Ver prompt
+      OpenCode §checklist_auditoria_tecnica_obligatoria.a.
+    patterns:
+      - pattern-either:
+          - pattern: sql.raw(`...${$X}...`)
+          - pattern: sql.raw($X + ...)
+      - pattern-not: sql.raw($LITERAL)
+
+  - id: ssot-no-ts-ignore
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      @ts-ignore detectado. Prohibido por CLAUDE.md (evitar "hacer trampa" al
+      tipado estricto). Usar @ts-expect-error con justificacion si es
+      estrictamente necesario, o corregir el tipo.
+    pattern-regex: '@ts-ignore'
+
+  - id: ssot-no-hardcoded-secret-assignment
+    languages: [typescript]
+    severity: WARNING
+    message: >-
+      Posible secreto/credencial hardcodeada. Los tokens de proveedor se
+      cifran con AES-256-GCM y la clave vive fuera del repositorio (RT-08).
+    patterns:
+      - pattern-either:
+          - pattern: const $VAR = "..."
+          - pattern: let $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i)(secret|token|password|apikey|api_key|private_key)
+      - pattern-not: const $VAR = ""

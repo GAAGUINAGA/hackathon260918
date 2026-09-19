@@ -1,0 +1,20 @@
+{
+  "name": "@ssot/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Anillo 4 - Consola de administracion (React + Vite). Implementacion en Fase 5.",
+  "main": "./src/main.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ssot/a11y": "workspace:*",
+    "@ssot/contracts": "workspace:*",
+    "@ssot/design-tokens": "workspace:*"
+  },
+  "devDependencies": {}
+}

@@ -1,0 +1,17 @@
+title = "gitleaks config — SSOT Contacts (Reto 2)"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Rutas de ejemplo/documentacion sin secretos reales"
+paths = [
+  '''infra/\.env\.example''',
+  '''\.claude/.*''',
+]
+
+[[rules]]
+id = "ssot-token-encryption-key-placeholder"
+description = "Evita marcar como hallazgo el placeholder documentado de TOKEN_ENCRYPTION_KEY"
+regex = '''TOKEN_ENCRYPTION_KEY=\s*$'''
+path = '''infra/\.env\.example'''

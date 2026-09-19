@@ -1,0 +1,21 @@
+{
+  "name": "@ssot/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Anillo 3 - API HTTP/WebSocket (NestJS + Fastify). Implementacion en Fase 4.",
+  "main": "./src/main.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ssot/application": "workspace:*",
+    "@ssot/contracts": "workspace:*",
+    "@ssot/domain": "workspace:*",
+    "@ssot/infrastructure": "workspace:*"
+  },
+  "devDependencies": {}
+}

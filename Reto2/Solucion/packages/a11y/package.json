@@ -1,0 +1,22 @@
+{
+  "name": "@ssot/a11y",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Primitivos accesibles compartidos (web), WCAG 2.1 AA.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

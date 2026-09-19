@@ -1,0 +1,20 @@
+{
+  "name": "@ssot/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Anillo 3 - Worker BullMQ + rele Outbox (NestJS standalone). Implementacion en Fase 4.",
+  "main": "./src/main.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ssot/application": "workspace:*",
+    "@ssot/domain": "workspace:*",
+    "@ssot/infrastructure": "workspace:*"
+  },
+  "devDependencies": {}
+}
