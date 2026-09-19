@@ -6,7 +6,7 @@
   "description": "Plataforma de Centralizacion de Contactos (SSOT) - Reto 2",
   "packageManager": "pnpm@12.4.2",
   "engines": {
-    "node": ">=20"
+    "node": "^22 || ^24 || >=26"
   },
   "scripts": {
     "build": "pnpm -r --if-present run build",
