@@ -27,6 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: '3.10' }
+        with: { python-version: '3.14' }
       - run: pip install -r requirements.txt -r requirements-dev.txt
       - run: python -m tests.accessibility.run_checks
