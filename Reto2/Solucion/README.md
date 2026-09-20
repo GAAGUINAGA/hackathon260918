@@ -5,6 +5,13 @@ Plataforma de Centralización de Contactos. Ver `.claude/planeacion_v.2.1.2.md`
 especificación completa. El flujo de desarrollo/auditoría está en
 `.claude/CLAUDE.md`.
 
+## Documentación
+
+- [Solución técnica y alcance real](docs/technical-solution.md)
+- [Estrategia de integración y migración](docs/integration-and-migration.md)
+- [Modelo de amenazas](docs/threat-model.md)
+- [Retrospectiva y mejoras priorizadas](docs/retrospective.md)
+
 ## Constitución técnica
 
 La plataforma se rige por estos acuerdos no negociables:
