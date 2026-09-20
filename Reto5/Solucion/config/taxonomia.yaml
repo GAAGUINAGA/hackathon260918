@@ -1,0 +1,40 @@
+# Taxonomía documental — fuente autoritativa: planeacion_v2.0.1.md §0.9.
+# Categoría principal (única, usada para naming) + tipo + etiquetas secundarias.
+
+categorias:
+  - codigo: "FIN"
+    nombre: "Financiero/Contable"
+    ejemplos: ["factura", "recibo", "balance", "estado_de_cuenta", "comprobante_pago"]
+    criterios: ["montos", "impuestos", "cuentas"]
+  - codigo: "LEG"
+    nombre: "Legal/Contractual"
+    ejemplos: ["contrato", "poder", "demanda", "acta", "resolucion"]
+    criterios: ["clausulas", "partes", "notaria"]
+  - codigo: "RRH"
+    nombre: "Recursos Humanos"
+    ejemplos: ["contrato_laboral", "nomina", "certificado_trabajo"]
+    criterios: ["empleado", "cargo", "salario"]
+  - codigo: "MED"
+    nombre: "Médico/Salud"
+    ejemplos: ["historia_clinica", "receta", "resultado_examen"]
+    criterios: ["paciente", "diagnostico", "medico"]
+  - codigo: "EDU"
+    nombre: "Académico"
+    ejemplos: ["certificado", "titulo", "matricula", "record_academico"]
+    criterios: ["estudiante", "institucion", "programa"]
+  - codigo: "ADM"
+    nombre: "Administrativo"
+    ejemplos: ["carta", "memorando", "acta"]
+    criterios: ["emisor", "asunto", "fecha"]
+  - codigo: "TEC"
+    nombre: "Técnico/Proyectos"
+    ejemplos: ["informe_tecnico", "manual"]
+    criterios: ["proyecto", "version", "responsable"]
+  - codigo: "IDP"
+    nombre: "Identidad/Personal"
+    ejemplos: ["dni", "pasaporte", "licencia"]
+    criterios: ["nombre", "numero", "vigencia"]
+  - codigo: "OTR"
+    nombre: "Otros"
+    ejemplos: ["sin_clasificar"]
+    criterios: ["revision_humana"]

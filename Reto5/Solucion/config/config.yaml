@@ -1,0 +1,64 @@
+# Configuración general del pipeline. Sin secretos (esos van en .env).
+# Fuente autoritativa: planeacion_v2.0.1.md §0.14.3 (ingesta), §0.15.7 (persistencia).
+
+ingesta:
+  extensiones_soportadas: [".pdf", ".docx", ".xlsx", ".txt", ".csv", ".png", ".jpg", ".jpeg", ".tiff"]
+  tamano_maximo_mb: 50
+  hash_algoritmo: "sha256"
+  debounce_segundos: 2.0
+  estabilidad_checks: 3
+  estabilidad_intervalo: 1.0
+  max_reintentos: 6
+  backoff_max_segundos: 60
+  lock_stale_segundos: 600
+  workers: 3
+  cola_max: 200
+
+ocr:
+  motor_primario: "tesseract"
+  motor_fallback: "paddleocr"
+  idiomas: ["spa", "eng"]
+
+chunking:
+  chunk_max_tokens: 512
+  chunk_overlap_tokens: 64
+  resumen_max_tokens: 512
+  estrategia_chunking: "recursive"   # recursive | fixed | sentence | semantic | hierarchical
+  llm_ventana_contexto: 8192
+
+clasificacion:
+  umbral_confianza_alta: 0.80
+  umbral_confianza_revision: 0.50
+  max_chunks_llm: 5
+  max_tokens_prompt: 4096
+  estrategia_agregacion: "ponderada"  # voto_mayoria | ponderada | jerarquica
+
+metadatos:
+  max_chunks_metadatos: 3
+  priorizar_encabezado_firma: true
+
+organizacion:
+  politica: "mover"   # mover | copiar
+  mantener_original: false
+
+persistencia:
+  motor: sqlite
+  ruta: data/auditoria.db
+  modo_lectura_uri: "?mode=ro&uri=true"
+  writer_batch: 50
+  writer_flush_ms: 200
+  pragmas:
+    journal_mode: WAL
+    synchronous: NORMAL
+    busy_timeout: 5000
+    foreign_keys: ON
+    temp_store: MEMORY
+    wal_autocheckpoint: 1000
+    journal_size_limit: 67108864
+    cache_size: -64000
+  mantenimiento:
+    checkpoint_cada_min: 60
+    vacuum_al_cerrar: true
+
+auditoria:
+  retener_dias: 365

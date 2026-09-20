@@ -1,0 +1,39 @@
+# Convención de nombramiento — fuente autoritativa: planeacion_v2.0.1.md §0.10,
+# cdu_v1.0.1.md UC-05.
+
+nombre:
+  # {YYYY-MM-DD}_{CAT}_{TIPO}_{ENTIDAD-PERSONA}_{ID}_{vNN}{_ESTADO}.{ext}
+  patron: "{fecha}_{categoria}_{tipo}_{entidad_persona}_{id}_{version}{sufijo_estado}"
+  fecha_formato: "%Y-%m-%d"
+  fecha_sin_valor: "0000-00-00"
+  fecha_estimada_sufijo: "_FECHA-ESTIMADA"  # usada si la fecha viene de mtime
+  version_formato: "v{:02d}"                # v01, v02, ...
+  id_fallback: "hash_corto"                 # sha256[:8] si no hay identificador
+  longitud_maxima: 180
+  longitud_maxima_entidad: 60
+  extension: "minuscula"
+  normalizacion:
+    mayusculas: true
+    sin_acentos: true
+    sin_espacios: true
+    separador: "_"
+    caracteres_prohibidos: ['/', '\\', ':', '*', '?', '"', '<', '>', '|']
+
+desambiguacion:
+  multiples_entidades: "emisor_antes_que_receptor"
+  multiples_personas: "titular_antes_que_beneficiario"
+  multiples_fechas: "emision_antes_que_vencimiento_antes_que_firma"
+  baja_confianza:
+    sufijo: "_REVISAR"
+    destino: "_Pendientes"
+  duplicado:
+    sufijo_patron: "_DUP{:02d}"
+  bloqueado:
+    sufijo: "_BLOQUEADO"
+
+ruta_logica:
+  patron: "{categoria}/{YYYY}/{MM}/{nombre_final}"
+
+colisiones:
+  estrategia: "sufijo_incremental"   # nombre_final _v02, _v03, ...
+  fallback_persistente: "timestamp_corto"  # _T143022

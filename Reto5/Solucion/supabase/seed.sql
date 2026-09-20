@@ -1,0 +1,3 @@
+-- seed.sql
+-- Fase 0: sin datos semilla. Se añaden fixtures sintéticas cuando existan
+-- casos de uso concretos que las requieran (Fase 1+).

@@ -1,0 +1,15 @@
+# Alternativa ligera a `supabase start` cuando solo se necesita Postgres
+# (sin Storage/Auth/Studio). Preferir `supabase start` para paridad completa.
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "54322:5432"
+    volumes:
+      - reto5_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  reto5_postgres_data:

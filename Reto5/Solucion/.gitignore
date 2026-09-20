@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# Entorno
+.env
+
+# Runtime local (nunca versionar)
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/cuarentena/*
+data/backup/*
+!data/cuarentena/.gitkeep
+!data/backup/.gitkeep
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

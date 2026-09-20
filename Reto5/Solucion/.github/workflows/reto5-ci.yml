@@ -1,0 +1,85 @@
+name: Reto 5 — Document Organizer AI CI
+
+on:
+  push:
+    branches: [main, RETO-5_IA-CLASIFICACION]
+    paths:
+      - "Reto5/Solucion/**"
+      - ".github/workflows/reto5-ci.yml"
+  pull_request:
+    paths:
+      - "Reto5/Solucion/**"
+      - ".github/workflows/reto5-ci.yml"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: Reto5/Solucion
+
+concurrency:
+  group: reto5-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RETO5_PERSISTENCE: sqlite
+  COVERAGE_MIN: 60
+
+jobs:
+  lint-format-types:
+    name: Lint · Format · Types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+      - run: uv run ruff check src tests
+      - run: uv run black --check src tests
+      - run: uv run mypy src
+
+  tests:
+    name: Tests (SQLite fallback)
+    needs: lint-format-types
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+      - name: Run tests (SQLite fallback)
+        run: uv run pytest --cov=src --cov-report=xml --cov-fail-under=${{ env.COVERAGE_MIN }}
+        env:
+          RETO5_PERSISTENCE: sqlite
+
+  supabase-integration:
+    name: Supabase local (no bloqueante)
+    needs: lint-format-types
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+        continue-on-error: true
+      - name: Intentar Supabase local
+        run: |
+          supabase start || echo "Supabase no disponible, se omite"
+          uv run pytest -m supabase || echo "Tests Supabase omitidos"
+
+  supabase-migrations:
+    name: Validar migraciones (condicional)
+    needs: lint-format-types
+    if: ${{ vars.RETO5_HAS_SUPABASE_SECRET == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+      - run: uv run python supabase/apply_migrations.py --dry-run
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

@@ -1,0 +1,32 @@
+name: Reto 5 — Document Organizer AI Security
+
+on:
+  push:
+    branches: [main, RETO-5_IA-CLASIFICACION]
+    paths:
+      - "Reto5/Solucion/**"
+      - ".github/workflows/reto5-security.yml"
+  pull_request:
+    paths:
+      - "Reto5/Solucion/**"
+      - ".github/workflows/reto5-security.yml"
+  workflow_dispatch: {}
+
+defaults:
+  run:
+    working-directory: Reto5/Solucion
+
+concurrency:
+  group: reto5-security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security:
+    name: pip-audit · bandit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync --all-extras
+      - run: uv run pip-audit
+      - run: uv run bandit -r src

@@ -1,0 +1,24 @@
+# Esquema de metadatos extraídos por documento. Se aplica en Fase 2 (UC-04).
+
+campos:
+  - nombre: "fecha_documento"
+    tipo: "date"
+    obligatorio: false
+  - nombre: "entidad_emisora"
+    tipo: "str"
+    obligatorio: false
+  - nombre: "entidad_receptora"
+    tipo: "str"
+    obligatorio: false
+  - nombre: "persona_relacionada"
+    tipo: "str"
+    obligatorio: false
+  - nombre: "identificador"
+    tipo: "str"
+    obligatorio: false
+  - nombre: "version"
+    tipo: "int"
+    obligatorio: false
+  - nombre: "confianza_global"
+    tipo: "float"
+    obligatorio: true

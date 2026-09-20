@@ -1,0 +1,30 @@
+# Config para `supabase start` (Supabase CLI local, Docker).
+# Generado manualmente porque la Supabase CLI no está instalada en este entorno;
+# reemplazar con el resultado de `supabase init` si difiere.
+project_id = "reto5-doc-organizer"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+
+[inbucket]
+enabled = false
