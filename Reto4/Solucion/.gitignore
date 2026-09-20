@@ -8,7 +8,7 @@ __pycache__/
 *.egg-info/
 .coverage
 htmlcov/
-output/*/
+output/*
 !output/.gitkeep
 models/*
 !models/.gitkeep
