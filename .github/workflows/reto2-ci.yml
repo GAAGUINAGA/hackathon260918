@@ -104,6 +104,12 @@ jobs:
           TEST_RELAY_DATABASE_URL: postgresql://app_relay:app_relay_local_dev_change_me@localhost:5432/ssot_contacts
         run: npx vitest run --config vitest.integration.config.ts
 
+      - name: Pruebas e2e de apps/api (JWT contra JWKS local, aislamiento por owner_id, rate limiting)
+        working-directory: Reto2/Solucion/apps/api
+        env:
+          TEST_DATABASE_URL: postgresql://app_rw:app_rw_local_dev_change_me@localhost:5432/ssot_contacts
+        run: npx vitest run --config vitest.e2e.config.ts
+
   secrets-scan:
     name: gitleaks
     runs-on: ubuntu-latest

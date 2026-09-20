@@ -37,7 +37,7 @@ Semgrep) y CI configurados.
   `application-no-node-core`: el anillo 1 tampoco puede importar Node core
   ni paquetes npm arbitrarios (solo `@ssot/domain` + `neverthrow`).
 
-**Fase 3 — Anillo 2 (Infraestructura y persistencia), en curso.** `packages/infrastructure` implementa:
+**Fase 3 — Anillo 2 (Infraestructura y persistencia).** Cerrada. `packages/infrastructure` implementa:
 - Esquema Drizzle de las 16 tablas activas (`src/db/schema/`) + migraciones
   en `infra/migrations/` (ver su README para el detalle de cada una).
 - RLS `FORCE` + `WITH CHECK` en las 16 tablas, `SET LOCAL app.current_user_id`
@@ -57,6 +57,28 @@ Semgrep) y CI configurados.
   credenciales reales).
 - `ContactRepositoryPort`/`ContactQueryPort` implementados contra Postgres
   real, cerrando el anillo para UC-01.
+
+**Fase 4 — Anillo 3 (Interfaz de red y API).** Cerrada. `apps/api` y `apps/worker` implementan:
+- `apps/api`: NestJS + Fastify. `JwtAuthGuard` verifica cada petición contra
+  el JWKS de Supabase (ADR-05, RT-12, caché + rotación via `jose`), deriva
+  `owner_id` solo del claim `sub` (RT-01), aprovisiona `user_preferences` en
+  la primera petición (UC-08) y soporta `@RequireMfa()` (`aal2`, UC-09,
+  declarado sin ruta consumidora aún).
+- `ContactsController` (UC-01/UC-11/UC-12): validación de frontera con zod
+  (RT-02), respuestas limpias vía `ClassSerializerInterceptor` con
+  `excludeExtraneousValues` (excludeAll), 404 uniforme para inexistente/ajeno/
+  retirado (nunca 403, UC-12).
+- Rate limiting global (`@nestjs/throttler`, RT-09) y filtro de excepciones
+  que nunca expone trazas internas al cliente (RT-07).
+- `SyncProgressGateway`: WebSocket (Socket.IO) autenticado en el handshake
+  (ADR-06), agrupado por sala de propietario, con `RedisIoAdapter` (ADR-06:
+  "adaptador Redis") — verificado arrancando la API real contra el Redis de
+  `docker-compose` y confirmando las conexiones `ioredis` en `CLIENT LIST`.
+- `apps/worker`: `OutboxRelayService` arranca/detiene el `OutboxRelay` de
+  Fase 3 dentro del ciclo de vida de Nest (`onModuleInit`/`onModuleDestroy`).
+- Probado end-to-end contra Postgres real (`apps/api/test/e2e/`): JWT firmado
+  con un JWKS local (sin credenciales reales), aislamiento por `owner_id`,
+  400/404 del dominio, `excludeAll` y rate limiting.
 
 **Ubicación del workflow de CI.** `Reto2/Solucion` es un subdirectorio de un
 monorepo que aloja varios retos. GitHub Actions **solo** descubre workflows
@@ -92,6 +114,13 @@ pnpm run test       # vitest transpila TS on-the-fly; no depende de dist/
 
 # Pruebas de integración de infraestructura (requieren Postgres arriba y migrado)
 pnpm --filter @ssot/infrastructure run test:integration
+
+# Pruebas e2e de apps/api (mismo Postgres; el JWT se firma con un JWKS local
+# de prueba, no requiere un proyecto Supabase real)
+pnpm --filter @ssot/api run test:e2e
+
+# Levantar la API localmente sí requiere un proyecto Supabase real
+# (SUPABASE_JWKS_URL/SUPABASE_ISSUER en infra/.env) — ver infra/.env.example.
 ```
 
 **Contrato de resolución de paquetes.** `main`/`types`/`exports` de cada

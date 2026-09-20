@@ -11,6 +11,7 @@ export * as schema from "./db/schema/index.js";
 export { withTransactionalContactWrites } from "./transactional-contact-writes.js";
 
 export { DrizzleContactRepository } from "./repositories/drizzle-contact-repository.js";
+export { provisionUserPreferences } from "./repositories/provision-user-preferences.js";
 export { DrizzleContactQuery } from "./queries/drizzle-contact-query.js";
 export { DrizzleOutbox } from "./outbox/drizzle-outbox.js";
 export type { OutboxEventHandler, OutboxRelayEvent, OutboxRelayOptions } from "./outbox/relay.js";

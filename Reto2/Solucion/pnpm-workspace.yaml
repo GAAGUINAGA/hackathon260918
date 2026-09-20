@@ -2,4 +2,9 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
+  # @scarf/scarf (via swagger-ui-dist) es un beacon de telemetria de
+  # instalacion sin relacion con el funcionamiento del paquete; se deniega
+  # por postura security-first (RT-07 - nada telefonea a terceros sin
+  # necesidad funcional).
+  '@scarf/scarf': false
   esbuild: true
