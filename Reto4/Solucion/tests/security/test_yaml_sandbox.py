@@ -7,6 +7,7 @@ import yaml as pyyaml
 from pydantic import ValidationError
 
 from src.core.errors import ConfigError
+from src.security.input_validation import load_camera_config_yaml
 from src.utils.config import load_camera_config
 
 VALID_YAML = """
@@ -102,3 +103,42 @@ def test_load_camera_config_rejects_malicious_yaml_tag(tmp_path: Path) -> None:
 def test_load_camera_config_rejects_non_mapping_yaml(tmp_path: Path) -> None:
     with pytest.raises(ConfigError):
         load_camera_config(_write(tmp_path, "- just\n- a\n- list\n"))
+
+
+def test_load_camera_config_yaml_delegates_to_load_camera_config(
+    tmp_path: Path,
+) -> None:
+    # src.security.input_validation.load_camera_config_yaml es un alias
+    # delgado (ruta canonica unica, CU-04.1/CU-06.2) -- ver AUDITORIA#4 H2.
+    path = _write(tmp_path, VALID_YAML)
+
+    assert load_camera_config_yaml(path) == load_camera_config(path)
+
+
+def test_load_camera_config_rejects_zero_resolution(tmp_path: Path) -> None:
+    bad = VALID_YAML.replace(
+        "resolution_target: [640, 640]", "resolution_target: [0, 640]"
+    )
+
+    with pytest.raises(ValidationError):
+        load_camera_config(_write(tmp_path, bad))
+
+
+def test_load_camera_config_rejects_self_intersecting_polygon(tmp_path: Path) -> None:
+    bad = VALID_YAML.replace(
+        "polygon: [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]]",
+        "polygon: [[0.0, 0.0], [1.0, 1.0], [1.0, 0.0], [0.0, 1.0]]",
+    )
+
+    with pytest.raises(ValidationError):
+        load_camera_config(_write(tmp_path, bad))
+
+
+def test_load_camera_config_rejects_zero_area_polygon(tmp_path: Path) -> None:
+    bad = VALID_YAML.replace(
+        "polygon: [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0]]",
+        "polygon: [[0.0, 0.0], [0.5, 0.0], [1.0, 0.0]]",
+    )
+
+    with pytest.raises(ValidationError):
+        load_camera_config(_write(tmp_path, bad))

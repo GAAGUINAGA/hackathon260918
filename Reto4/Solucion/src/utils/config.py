@@ -13,15 +13,19 @@ from typing import Annotated, Any, Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from shapely.geometry import Polygon as ShapelyPolygon
 
 from src.core.errors import ConfigError
+
+PositiveInt = Annotated[int, Field(gt=0)]
+Resolution = tuple[PositiveInt, PositiveInt]
 
 
 class PipelineSettings(BaseSettings):
     model_config = SettingsConfigDict(extra="forbid")
 
     inference_rate: int = Field(gt=0)
-    resolution_target: tuple[int, int]
+    resolution_target: Resolution
     max_video_size_mb: int = Field(gt=0)
     allowed_video_extensions: list[str]
     frame_queue_maxsize: int = Field(gt=0, default=5)
@@ -81,20 +85,36 @@ class PrivacyConfig(BaseModel):
     keep_frames: bool = False
 
 
-class PolygonZoneConfig(BaseModel):
+def _validate_polygon_geometry(points: list[Point2D]) -> list[Point2D]:
+    polygon = ShapelyPolygon(points)
+    if not polygon.is_valid or polygon.area == 0:
+        raise ValueError(
+            f"poligono invalido o degenerado (autointersectado/area 0): {points}"
+        )
+    return points
+
+
+class _PolygonGeometryMixin(BaseModel):
+    polygon: list[Point2D] = Field(min_length=3)
+
+    @field_validator("polygon")
+    @classmethod
+    def _check_polygon_geometry(cls, points: list[Point2D]) -> list[Point2D]:
+        return _validate_polygon_geometry(points)
+
+
+class PolygonZoneConfig(_PolygonGeometryMixin):
     model_config = ConfigDict(extra="forbid")
 
     name: str = Field(min_length=1)
     type: Literal["exclusion", "count", "intrusion"]
-    polygon: list[Point2D] = Field(min_length=3)
 
 
-class DwellZoneConfig(BaseModel):
+class DwellZoneConfig(_PolygonGeometryMixin):
     model_config = ConfigDict(extra="forbid")
 
     name: str = Field(min_length=1)
     type: Literal["dwell"]
-    polygon: list[Point2D] = Field(min_length=3)
     min_time_seconds: float = Field(gt=0)
     dwell_rearm_seconds: float = Field(default=0.0, ge=0.0)
 
@@ -118,7 +138,7 @@ class CameraConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     camera_id: str = Field(min_length=1)
-    resolution_target: tuple[int, int]
+    resolution_target: Resolution
     inference_rate: int = Field(gt=0)
     confidence_threshold: float = Field(ge=0.0, le=1.0)
     iou_threshold: float = Field(ge=0.0, le=1.0)

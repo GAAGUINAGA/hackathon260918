@@ -1,10 +1,19 @@
 """Orquestacion de MainProcess y AnalyticsProcess (CU-04.2).
 
 MainProcess corre 2 hilos (Ingesta, Inferencia) y arranca AnalyticsProcess
-como proceso aislado (planeacion_v1.2.0.md Sec.3.2). En Fase 1, Inferencia
-y AnalyticsProcess son stubs de paso (pass-through / drain) que solo
-garantizan el cierre ordenado con centinelas; se reemplazan en Fase 2
-(src/ai/detector.py) y Fase 3 (src/analytics/process.py).
+como proceso aislado (planeacion_v1.2.0.md Sec.3.2). Inferencia y
+AnalyticsProcess siguen siendo stubs de paso (pass-through / drain) que
+solo garantizan el cierre ordenado con centinelas: `src/ai/detector.py`
+(Fase 2) y `src/analytics/process.py::AnalyticsEngine` (Fase 3) ya
+existen como componentes probados de forma independiente, pero el
+cableado real aqui espera a Fase 4, cuando existan sinks
+(`src/telemetry/sinks.py`) a los que entregar los eventos que produce
+AnalyticsEngine.
+
+Extensores (CU-07.2): NO cablear Detector/AnalyticsEngine directamente
+en `_run_inferencia`/`_run_analytics_process` para adelantar esto; el
+punto de integracion previsto es a traves del dispatcher multi-sink de
+Fase 4, no de este modulo.
 """
 
 from __future__ import annotations
@@ -44,7 +53,7 @@ def _run_inferencia(
     frame_queue: queue.Queue[FramePacket | None],
     detection_queue: multiprocessing.Queue[FramePacket | None],
 ) -> None:
-    # TODO Fase 2: reemplazar por inferencia OpenVINO real (src/ai/detector.py).
+    # Stub vigente hasta Fase 4 (ver docstring del modulo): no cablear aqui.
     while True:
         packet = frame_queue.get()
         if packet is None:
@@ -56,7 +65,7 @@ def _run_inferencia(
 def _run_analytics_process(
     detection_queue: multiprocessing.Queue[FramePacket | None],
 ) -> None:
-    # TODO Fase 3+: tracking, reglas, render, export (src/analytics/process.py).
+    # Stub vigente hasta Fase 4 (ver docstring del modulo): no cablear aqui.
     while True:
         packet = detection_queue.get()
         if packet is None:
@@ -106,7 +115,7 @@ def run_pipeline(
     # CU-04.2 FE-01: cada etapa se vigila con is_alive() tras su join(timeout);
     # un hilo/proceso que sigue vivo es un timeout tipificado (fail-secure), no
     # un cierre silencioso. El monitor continuo de 1s (CU-04.2 flujo 3) se
-    # implementa en Fase 3 junto con el AnalyticsProcess real.
+    # implementa en Fase 4 junto con el cableado real de AnalyticsProcess.
     ingesta_thread.join(timeout=join_timeout)
     if ingesta_thread.is_alive():
         raise PipelineTimeoutError("Ingesta no cerro dentro del timeout")
