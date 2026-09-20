@@ -1,0 +1,43 @@
+# Config de ejemplo (Fase 2). El esquema Pydantic estricto (CameraConfig,
+# extra='forbid') que valida este archivo llega en Fase 3
+# (src/utils/config.py). `model.sha256` es un placeholder hasta que se
+# exporte un modelo real con src/ai/export_openvino.py (Fase 2, manual).
+camera_id: "cam_office_main"
+resolution_target: [640, 640]
+inference_rate: 5
+confidence_threshold: 0.35
+iou_threshold: 0.5
+
+model:
+  path: "models/yolov11s_openvino_model/"
+  sha256: "PENDIENTE_EXPORTAR_MODELO"
+  device: "CPU"
+
+tracker:
+  algorithm: "bytetrack"
+  track_buffer: 60
+  match_thresh: 0.8
+  with_reid: false
+
+security:
+  model_signature_required: true
+  allowed_video_extensions: [".mp4", ".mkv", ".avi"]
+  max_video_size_mb: 8192
+  yaml_sandbox: true
+
+privacy:
+  blur_faces: false
+  keep_frames: false
+
+zones:
+  - name: "exclusion_ventana"
+    type: "exclusion"
+    polygon: [[0.0, 0.0], [0.2, 0.0], [0.2, 1.0], [0.0, 1.0]]
+  - name: "zona_cafeteria"
+    type: "dwell"
+    min_time_seconds: 15
+    polygon: [[0.6, 0.4], [0.9, 0.4], [0.9, 0.8], [0.6, 0.8]]
+  - name: "puerta_principal"
+    type: "line_crossing"
+    line: [[0.4, 0.9], [0.6, 0.9]]
+    direction: "any"

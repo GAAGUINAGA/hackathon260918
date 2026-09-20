@@ -20,6 +20,7 @@ class ExitCode(IntEnum):
     TELEMETRY_FAIL = 15
     RENDER_FAIL = 16
     SLA_VIOLATION = 17
+    MODEL_INTEGRITY_FAIL = 18
 
 
 class PipelineError(Exception):
@@ -36,3 +37,11 @@ class IngestError(PipelineError):
 
 class PipelineTimeoutError(PipelineError):
     exit_code = ExitCode.TIMEOUT
+
+
+class ModelIntegrityError(PipelineError):
+    exit_code = ExitCode.MODEL_INTEGRITY_FAIL
+
+
+class TrackerConfigError(ConfigError):
+    """Config de tracking prohibida por P1 (CU-01.3 FE-01, CU-04.1 FE-03)."""

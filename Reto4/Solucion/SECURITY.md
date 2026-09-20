@@ -41,3 +41,14 @@ Ver `.github/workflows/reto4-security.yml` (raiz del monorepo):
 | Vulnerabilidad | Paquete | Severidad | Justificacion | Estado |
 |---|---|---|---|---|
 | PYSEC-2026-3740 / GHSA-8mgp-746c-j5xp | `nltk` (dependencia transitiva de `safety`, herramienta de dev/CI) | High (CVSS 3.1: 7.0) | Path traversal en APIs de carga de modelos NLTK (`TransitionParser`, `AveragedPerceptron`, `PerceptronTagger`, `maxent`). Este proyecto no importa `nltk` en `src/` ni carga modelos NLTK desde ninguna ruta, confiable o no; el codigo vulnerable nunca se ejecuta. Sin version corregida disponible en PyPI al momento del escaneo (2026-09-19). | Ignorada explicitamente via `pip-audit --ignore-vuln PYSEC-2026-3740` en self-check y CI. Revisar en cada Fase; remover la excepcion cuando `nltk` publique un fix o `safety` deje de depender de `nltk`. |
+
+## Limitaciones conocidas de las herramientas
+
+- **`pip-audit` no audita `torch`/`torchvision` (build CPU)**: estos paquetes
+  se instalan desde `https://download.pytorch.org/whl/cpu` con sufijo de
+  version local (`+cpu`), que `pip-audit` no reconoce contra su base de
+  datos (`Dependency not found on PyPI and could not be audited`). Son
+  dependencias de `requirements-dev.txt` (solo `ultralytics`/
+  `src/ai/export_openvino.py`, build-time; nunca en el runtime de
+  produccion, ver `src/ai/tracking/NOTICE.md`). Mitigacion: `safety`
+  (base de datos independiente) sí escanea ambos paquetes sin hallazgos.

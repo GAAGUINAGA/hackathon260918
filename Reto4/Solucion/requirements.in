@@ -3,3 +3,5 @@ pydantic-settings
 pyyaml
 numpy
 opencv-python-headless
+openvino
+lap

@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 black==26.5.1
 flake8==7.3.0
 ruff==0.16.8
@@ -11,3 +13,4 @@ detect-secrets
 pre-commit
 pip-tools
 types-PyYAML
+ultralytics
