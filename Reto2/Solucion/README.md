@@ -5,6 +5,46 @@ Plataforma de Centralización de Contactos. Ver `.claude/planeacion_v.2.1.2.md`
 especificación completa. El flujo de desarrollo/auditoría está en
 `.claude/CLAUDE.md`.
 
+## Constitución técnica
+
+La plataforma se rige por estos acuerdos no negociables:
+
+1. **Fuente única de verdad.** PostgreSQL es el registro canónico de contactos;
+   proveedores externos son fuentes sincronizables, no dueños de los datos.
+2. **Arquitectura hexagonal.** Dominio, aplicación, infraestructura e interfaz
+   se mantienen separados y `dependency-cruiser` vigila que no haya dependencias
+   hacia adentro.
+3. **Aislamiento por propietario.** El `owner_id` procede únicamente del JWT
+   validado; RLS `FORCE` y `WITH CHECK` son la segunda línea de defensa.
+4. **Validación en fronteras.** Value Objects, esquemas Zod y DTOs limpios
+   impiden que datos inválidos o campos no expuestos crucen las capas.
+5. **Seguridad por defecto.** Sin SQL interpolado, tokens OAuth cifrados con
+   AES-256-GCM, errores sanitizados, rate limit, JWT contra JWKS y análisis de
+   secretos/SAST en CI.
+6. **Consistencia transaccional.** Las mutaciones y eventos Outbox ocurren en
+   el mismo `COMMIT`; el relé usa `LISTEN/NOTIFY` y sondeo adaptativo.
+7. **Contrato primero.** OpenAPI se genera desde la API y alimenta los clientes
+   React y Flutter.
+8. **Accesibilidad como terminado.** Web cumple WCAG 2.1 AA y móvil usa
+   semántica nativa, con pruebas automatizadas.
+9. **Datos de demostración seguros.** Los seeds son sintéticos, reproducibles e
+   idempotentes; nunca incluyen PII, tokens ni secretos.
+10. **IA diferida.** La Fase 7 es aditiva: el producto actual no necesita IA
+    para funcionar ni para demostrar su núcleo determinista.
+
+## Características y entregables por fase
+
+| Fase | Estado | Entregables |
+| --- | --- | --- |
+| 0 — Entorno | Cerrada | Monorepo pnpm, Docker Compose (PostgreSQL/Redis), TypeScript estricto, ESLint, Semgrep, Gitleaks, dependency-cruiser y CI. |
+| 1 — Dominio | Cerrada | Value Objects de email/teléfono, normalización NFKC/unaccent/E.164, agregado Contact y deduplicación determinista B1–B4. |
+| 2 — Aplicación | Cerrada | `ActorContext`, puertos de repositorio/consulta/proveedor/Outbox, caso de uso Crear contacto y dobles en memoria. |
+| 3 — Infraestructura | Cerrada | 16 tablas y migraciones Drizzle, RLS, roles mínimos, cifrado AES-GCM, Outbox transaccional y adaptador Google People. |
+| 4 — API | Cerrada | NestJS/Fastify, REST, WebSocket autenticado, JWT/JWKS de Supabase, rate limit, validación Zod, DTOs seguros y e2e. |
+| 5 — Clientes | Cerrada | Consola React/Vite accesible, cliente Flutter, clientes OpenAPI generados y pruebas de accesibilidad. |
+| 6 — Seguridad y demo | Cerrada | Seeds sintéticos idempotentes, controles SSRF/CSV, modelo de amenazas y pruebas de integración estabilizadas. |
+| 7 — IA | Diferida | Sin implementar deliberadamente: pgvector, embeddings, LLM y sugerencias semánticas no son necesarios para operar el producto. |
+
 ## Estado
 
 **Fase 0 — Seteo del entorno.** Cerrada. Estructura de monorepo, tooling de
@@ -84,7 +124,7 @@ Semgrep) y CI configurados.
 contrato OpenAPI generado, con pruebas de accesibilidad en sus pantallas de
 contactos.
 
-**Fase 6 — Endurecimiento, seguridad y demostración.** En curso. Incluye seeds
+**Fase 6 — Endurecimiento, seguridad y demostración.** Cerrada. Incluye seeds
 sintéticos reproducibles, controles probados contra SSRF e inyección de
 fórmulas CSV, y el [modelo de amenazas](docs/threat-model.md).
 
@@ -133,6 +173,104 @@ psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -f infra/seeds/001_demo_synthetic.
 # Levantar la API localmente sí requiere un proyecto Supabase real
 # (SUPABASE_JWKS_URL/SUPABASE_ISSUER en infra/.env) — ver infra/.env.example.
 ```
+
+## Instalación y ejecución local
+
+### Dependencias
+
+- Node.js 22 o superior y Corepack (para pnpm 12).
+- Docker Desktop (PostgreSQL 16 y Redis 7 se ejecutan en contenedores).
+- Flutter estable, solo para compilar/probar el cliente móvil.
+- Un proyecto Supabase, solo para iniciar sesión y usar la aplicación web de
+  forma manual. Las pruebas automatizadas no requieren uno.
+
+### 1. Preparar el entorno
+
+En PowerShell, desde `Reto2/Solucion`:
+
+```powershell
+corepack enable
+pnpm install --frozen-lockfile
+Copy-Item infra\.env.example infra\.env
+Copy-Item apps\web\.env.example apps\web\.env.local
+```
+
+En `infra\.env`, conserva el mismo puerto en `POSTGRES_PORT` y en las tres
+URLs de PostgreSQL. Por ejemplo, si Docker usa el puerto `5433`:
+
+```env
+POSTGRES_PORT=5433
+DATABASE_URL=postgresql://app_rw:app_rw_local_dev_change_me@localhost:5433/ssot_contacts
+DATABASE_ADMIN_URL=postgresql://ssot_admin:ssot_local_dev@localhost:5433/ssot_contacts
+RELAY_DATABASE_URL=postgresql://app_relay:app_relay_local_dev_change_me@localhost:5433/ssot_contacts
+```
+
+Levanta servicios y aplica el esquema:
+
+```powershell
+docker compose -f infra/docker-compose.yml --env-file infra/.env up -d
+
+# Drizzle no lee infra/.env automáticamente: expone esta URL en la terminal.
+$env:DATABASE_ADMIN_URL="postgresql://ssot_admin:ssot_local_dev@localhost:5433/ssot_contacts"
+pnpm --filter @ssot/infrastructure run db:migrate
+```
+
+Si mantuviste el puerto `5432`, cambia `5433` por `5432` en el último comando.
+
+### 2. Probar el proyecto automáticamente
+
+```powershell
+pnpm run lint
+pnpm run build
+pnpm run typecheck
+pnpm run dep-cruise
+pnpm run test
+pnpm --filter @ssot/infrastructure run test:integration
+pnpm --filter @ssot/api run test:e2e
+
+Set-Location apps\mobile
+flutter analyze
+flutter test
+```
+
+### 3. Usar la aplicación web como usuario
+
+1. Crea un proyecto Supabase y un usuario de email/contraseña en
+   **Authentication → Users**.
+2. Completa `apps\web\.env.local`:
+
+   ```env
+   VITE_SUPABASE_URL=https://TU-PROYECTO.supabase.co
+   VITE_SUPABASE_ANON_KEY=TU_CLAVE_ANON
+   VITE_API_BASE_URL=http://localhost:3000
+   ```
+
+3. Completa en `infra\.env` `SUPABASE_JWKS_URL`, `SUPABASE_ISSUER` y
+   `SUPABASE_AUDIENCE=authenticated` con los valores de ese proyecto.
+4. Carga las variables de `infra\.env`, compila e inicia la API:
+
+   ```powershell
+   Set-Location C:\Proyectos\Hackathon\Reto2\Solucion
+   Get-Content infra\.env | ForEach-Object {
+     if ($_ -match '^\s*([^#=]+)=(.*)$') {
+       Set-Item -Path "Env:$($matches[1].Trim())" -Value $matches[2].Trim()
+     }
+   }
+   pnpm run build
+   node apps\api\dist\main.js
+   ```
+
+5. En otra terminal, inicia la web y abre la URL indicada, normalmente
+   `http://localhost:5173`:
+
+   ```powershell
+   Set-Location C:\Proyectos\Hackathon\Reto2\Solucion
+   pnpm --filter @ssot/web run dev
+   ```
+
+Inicia sesión, crea un contacto y consulta su detalle. Los seeds de
+`infra/seeds/` sirven para pruebas de base de datos: por RLS, un usuario real
+de Supabase no verá los contactos de los UUID ficticios.
 
 **Contrato de resolución de paquetes.** `main`/`types`/`exports` de cada
 paquete de `packages/` apuntan a `./dist/*`, no a `./src/*`: es el mecanismo
