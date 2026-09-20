@@ -58,4 +58,12 @@ describe("encryptToken / decryptToken (RT-08, AES-256-GCM)", () => {
     const tampered = { ...encrypted, authTag: Buffer.from(randomBytes(16)).toString("base64") };
     expect(() => decryptToken(tampered, key)).toThrow(TokenDecryptionError);
   });
+
+  it("rechaza un authTag truncado en vez de aceptarlo como válido (semgrep gcm-no-tag-length)", () => {
+    const key = testKey();
+    const encrypted = encryptToken("secreto", key);
+    const fullTag = Buffer.from(encrypted.authTag, "base64");
+    const truncated = { ...encrypted, authTag: fullTag.subarray(0, 4).toString("base64") };
+    expect(() => decryptToken(truncated, key)).toThrow(TokenDecryptionError);
+  });
 });

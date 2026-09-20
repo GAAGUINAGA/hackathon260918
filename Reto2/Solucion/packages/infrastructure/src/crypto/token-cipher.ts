@@ -11,6 +11,11 @@ import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 const ALGORITHM = "aes-256-gcm";
 const KEY_LENGTH_BYTES = 32;
 const IV_LENGTH_BYTES = 12;
+// GCM permite truncar el tag de autenticacion; sin fijar la longitud
+// esperada, un atacante podria intentar colar un tag mas corto de lo
+// debido para facilitar una falsificacion (semgrep: gcm-no-tag-length).
+// 16 bytes (128 bits) es el tag completo, el que ya produce getAuthTag().
+const AUTH_TAG_LENGTH_BYTES = 16;
 
 export interface EncryptedToken {
   readonly ciphertext: string;
@@ -43,7 +48,7 @@ export function parseEncryptionKey(keyBase64: string): Buffer {
 
 export function encryptToken(plaintext: string, key: Buffer): EncryptedToken {
   const iv = randomBytes(IV_LENGTH_BYTES);
-  const cipher = createCipheriv(ALGORITHM, key, iv);
+  const cipher = createCipheriv(ALGORITHM, key, iv, { authTagLength: AUTH_TAG_LENGTH_BYTES });
   const ciphertext = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
   const authTag = cipher.getAuthTag();
 
@@ -56,7 +61,9 @@ export function encryptToken(plaintext: string, key: Buffer): EncryptedToken {
 
 export function decryptToken(encrypted: EncryptedToken, key: Buffer): string {
   try {
-    const decipher = createDecipheriv(ALGORITHM, key, Buffer.from(encrypted.iv, "base64"));
+    const decipher = createDecipheriv(ALGORITHM, key, Buffer.from(encrypted.iv, "base64"), {
+      authTagLength: AUTH_TAG_LENGTH_BYTES,
+    });
     decipher.setAuthTag(Buffer.from(encrypted.authTag, "base64"));
     const plaintext = Buffer.concat([
       decipher.update(Buffer.from(encrypted.ciphertext, "base64")),
