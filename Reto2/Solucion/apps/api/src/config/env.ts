@@ -17,6 +17,11 @@ const envSchema = z.object({
   // de una instancia del API, para que la emisión agregada por sala de
   // propietario llegue a un cliente conectado a otra instancia.
   REDIS_URL: z.string().min(1).default("redis://localhost:6379"),
+  // AUDITORIA#4 O-03: sin definir, Fastify resuelve la IP directa (correcto
+  // en local/CI). Detrás de un proxy/LB (F6) debe fijarse a la cantidad de
+  // saltos de confianza o a la lista de IPs del balanceador — nunca a
+  // `true` a ciegas, que confiaría en cualquier `X-Forwarded-For` entrante.
+  TRUST_PROXY: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

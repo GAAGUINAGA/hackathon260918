@@ -64,6 +64,16 @@ describe("JwtAuthGuard (UC-08)", () => {
     expect(provisionUserPreferences).toHaveBeenCalledWith(db, "user-abc");
   });
 
+  it("AUDITORIA#4 O-01: no reaprovisiona en peticiones subsiguientes del mismo usuario", async () => {
+    vi.mocked(verifier.verify).mockResolvedValue({ sub: "user-abc", aal: "aal1" });
+    const guard = new JwtAuthGuard(verifier, db as never, reflector);
+
+    await guard.canActivate(fakeContext({ headers: { authorization: "Bearer good-token" } }));
+    await guard.canActivate(fakeContext({ headers: { authorization: "Bearer good-token" } }));
+
+    expect(provisionUserPreferences).toHaveBeenCalledTimes(1);
+  });
+
   it("exige aal2 en rutas marcadas @RequireMfa() y rechaza con 403 explícito si falta (UC-09)", async () => {
     vi.mocked(verifier.verify).mockResolvedValue({ sub: "user-abc", aal: "aal1" });
     vi.mocked(reflector.getAllAndOverride).mockReturnValue(true);

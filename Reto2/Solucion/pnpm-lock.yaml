@@ -220,9 +220,6 @@ importers:
       '@ssot/application':
         specifier: workspace:*
         version: link:../../packages/application
-      '@ssot/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
       '@ssot/domain':
         specifier: workspace:*
         version: link:../../packages/domain

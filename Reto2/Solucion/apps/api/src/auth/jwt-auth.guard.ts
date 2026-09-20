@@ -28,6 +28,12 @@ const BEARER_PREFIX = "Bearer ";
  */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
+  // AUDITORIA#4 O-01: evita una escritura por petición para usuarios ya
+  // aprovisionados en este proceso. `provisionUserPreferences` sigue
+  // siendo la fuente de verdad (ON CONFLICT DO NOTHING): este set es solo
+  // un atajo de proceso, nunca se lee para autorizar nada.
+  private readonly provisionedUserIds = new Set<string>();
+
   constructor(
     @Inject(JWT_VERIFIER) private readonly verifier: JwtVerifier,
     @Inject(DATABASE) private readonly db: Database,
@@ -63,7 +69,10 @@ export class JwtAuthGuard implements CanActivate {
       });
     }
 
-    await provisionUserPreferences(this.db, claims.sub);
+    if (!this.provisionedUserIds.has(claims.sub)) {
+      await provisionUserPreferences(this.db, claims.sub);
+      this.provisionedUserIds.add(claims.sub);
+    }
 
     (request as RequestWithActor).actor = createActorContext(claims.sub, "user");
     return true;
