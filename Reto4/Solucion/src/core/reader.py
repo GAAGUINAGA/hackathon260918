@@ -17,6 +17,7 @@ import cv2
 import numpy as np
 
 from src.core.errors import IngestError
+from src.security.limits import validate_video_extension, validate_video_size
 
 
 @dataclass(frozen=True)
@@ -30,7 +31,14 @@ def read_frames(
     video_path: Path,
     inference_rate: int,
     resolution_target: tuple[int, int],
+    allowed_extensions: list[str],
+    max_video_size_mb: int,
 ) -> Iterator[FramePacket]:
+    validate_video_extension(video_path, allowed_extensions)
+    if not video_path.is_file():
+        raise IngestError(f"video no encontrado: {video_path}")
+    validate_video_size(video_path.stat().st_size, max_video_size_mb)
+
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         raise IngestError(f"no se pudo abrir el video: {video_path}")
