@@ -21,10 +21,13 @@ export type { FetchLike } from "./adapters/google/google-people-adapter.js";
 export {
   GoogleContactNotFoundError,
   GooglePeopleAdapter,
+  InvalidGoogleResourceNameError,
   GoogleRateLimitedError,
   GoogleSyncTokenExpiredError,
   GoogleWriteConflictError,
 } from "./adapters/google/google-people-adapter.js";
+
+export { neutralizeCsvFormula } from "./security/csv-formula.js";
 
 export type { EncryptedToken } from "./crypto/token-cipher.js";
 export {

@@ -20,8 +20,10 @@ import type {
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
 const PEOPLE_API_BASE = "https://people.googleapis.com/v1";
+const PEOPLE_API_ORIGIN = "https://people.googleapis.com";
 const PERSON_FIELDS = "names,emailAddresses,phoneNumbers,metadata";
 const PAGE_SIZE = 200;
+const GOOGLE_RESOURCE_NAME = /^people\/[A-Za-z0-9_-]+$/;
 
 export class GoogleSyncTokenExpiredError extends Error {
   constructor() {
@@ -48,6 +50,14 @@ export class GoogleWriteConflictError extends Error {
   constructor() {
     super("El etag remoto no coincide (HTTP 4xx de precondición): alguien más modificó el contacto.");
     this.name = "GoogleWriteConflictError";
+  }
+}
+
+/** RT-07 / modelo de amenazas F6: el identificador remoto no puede elegir el host de una petición. */
+export class InvalidGoogleResourceNameError extends Error {
+  constructor() {
+    super("El identificador remoto de Google tiene un formato no permitido.");
+    this.name = "InvalidGoogleResourceNameError";
   }
 }
 
@@ -115,8 +125,14 @@ export class GooglePeopleAdapter implements ContactProviderPort {
     changedFields: Readonly<Record<string, unknown>>,
   ): Promise<PushUpdateResult> {
     const accessToken = await this.getAccessToken(accountId);
+    if (!GOOGLE_RESOURCE_NAME.test(remoteId)) {
+      throw new InvalidGoogleResourceNameError();
+    }
     const updateMask = Object.keys(changedFields).join(",");
     const url = new URL(`${PEOPLE_API_BASE}/${remoteId}:updateContact`);
+    if (url.origin !== PEOPLE_API_ORIGIN) {
+      throw new InvalidGoogleResourceNameError();
+    }
     url.searchParams.set("updatePersonFields", updateMask);
 
     const response = await this.fetchFn(url.toString(), {

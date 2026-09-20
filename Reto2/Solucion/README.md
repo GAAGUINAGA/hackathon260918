@@ -80,6 +80,14 @@ Semgrep) y CI configurados.
   con un JWKS local (sin credenciales reales), aislamiento por `owner_id`,
   400/404 del dominio, `excludeAll` y rate limiting.
 
+**Fase 5 — Anillo 4 (Clientes).** Cerrada. React/Vite y Flutter consumen el
+contrato OpenAPI generado, con pruebas de accesibilidad en sus pantallas de
+contactos.
+
+**Fase 6 — Endurecimiento, seguridad y demostración.** En curso. Incluye seeds
+sintéticos reproducibles, controles probados contra SSRF e inyección de
+fórmulas CSV, y el [modelo de amenazas](docs/threat-model.md).
+
 **Ubicación del workflow de CI.** `Reto2/Solucion` es un subdirectorio de un
 monorepo que aloja varios retos. GitHub Actions **solo** descubre workflows
 en `.github/workflows/` de la **raíz real del repositorio**, no dentro de
@@ -118,6 +126,9 @@ pnpm --filter @ssot/infrastructure run test:integration
 # Pruebas e2e de apps/api (mismo Postgres; el JWT se firma con un JWKS local
 # de prueba, no requiere un proyecto Supabase real)
 pnpm --filter @ssot/api run test:e2e
+
+# Datos de demostración locales, después de migrar (nunca en producción)
+psql "$DATABASE_ADMIN_URL" -v ON_ERROR_STOP=1 -f infra/seeds/001_demo_synthetic.sql
 
 # Levantar la API localmente sí requiere un proyecto Supabase real
 # (SUPABASE_JWKS_URL/SUPABASE_ISSUER en infra/.env) — ver infra/.env.example.

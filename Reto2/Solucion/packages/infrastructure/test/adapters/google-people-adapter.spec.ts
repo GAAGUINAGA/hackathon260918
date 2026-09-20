@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   GoogleContactNotFoundError,
   GooglePeopleAdapter,
+  InvalidGoogleResourceNameError,
   GoogleRateLimitedError,
   GoogleSyncTokenExpiredError,
   GoogleWriteConflictError,
@@ -114,4 +115,14 @@ describe("GooglePeopleAdapter.pushUpdate (UC-06, ADR-17)", () => {
     expect((adapter as unknown as Record<string, unknown>)["createContact"]).toBeUndefined();
     expect((adapter as unknown as Record<string, unknown>)["deleteContact"]).toBeUndefined();
   });
+
+  it.each(["https://metadata.google.internal/latest", "people/a/../b", "people/a?next=https://evil.example"]) (
+    "rechaza resourceName no canónico antes de llamar a la red: %s",
+    async (remoteId) => {
+      const fetchFn = vi.fn<FetchLike>();
+      const adapter = new GooglePeopleAdapter(async () => "token", fetchFn);
+      await expect(adapter.pushUpdate("acc-1", remoteId, "etag", {})).rejects.toThrow(InvalidGoogleResourceNameError);
+      expect(fetchFn).not.toHaveBeenCalled();
+    },
+  );
 });
