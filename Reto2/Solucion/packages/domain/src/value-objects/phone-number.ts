@@ -76,4 +76,15 @@ export class PhoneNumber {
 
     return ok(new PhoneNumber(trimmed, `+${combined}`, true));
   }
+
+  /**
+   * Reconstrucción de confianza para infraestructura (Fase 3): rehidrata un
+   * `PhoneNumber` desde datos ya persistidos. Necesaria porque `create`
+   * exige la región para re-derivar el E.164 a partir de `rawInput`, y la
+   * región no se persiste por teléfono — solo el resultado ya normalizado.
+   * Nunca debe usarse con datos de origen externo — esa ruta es `create`.
+   */
+  static restore(params: { readonly rawInput: string; readonly e164: string | null; readonly isNormalized: boolean }): PhoneNumber {
+    return new PhoneNumber(params.rawInput, params.e164, params.isNormalized);
+  }
 }

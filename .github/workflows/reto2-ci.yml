@@ -51,6 +51,59 @@ jobs:
       - name: Tests (Vitest)
         run: pnpm run test
 
+  integration:
+    name: Integración (RLS, Outbox, cripto) contra Postgres real
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ssot_admin
+          POSTGRES_PASSWORD: ssot_local_dev
+          POSTGRES_DB: ssot_contacts
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ssot_admin -d ssot_contacts"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Enable corepack (pnpm)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (packages/* deben resolverse via dist/)
+        run: pnpm run build
+
+      - name: Bootstrap de roles (app_rw, app_relay — ADR-04, RT-13)
+        env:
+          PGPASSWORD: ssot_local_dev
+        run: |
+          psql -h localhost -U ssot_admin -d ssot_contacts -v ON_ERROR_STOP=1 -f infra/roles/001_create_app_rw.sql
+          psql -h localhost -U ssot_admin -d ssot_contacts -v ON_ERROR_STOP=1 -f infra/roles/002_create_app_relay.sql
+
+      - name: Migraciones (Drizzle — 16 tablas, RLS, extensiones, disparador de Outbox)
+        working-directory: packages/infrastructure
+        env:
+          DATABASE_ADMIN_URL: postgresql://ssot_admin:ssot_local_dev@localhost:5432/ssot_contacts
+        run: npx drizzle-kit migrate
+
+      - name: Pruebas de integración (RLS FORCE+WITH CHECK, RT-04 atomicidad, relé del Outbox)
+        working-directory: packages/infrastructure
+        env:
+          TEST_DATABASE_URL: postgresql://app_rw:app_rw_local_dev_change_me@localhost:5432/ssot_contacts
+          TEST_RELAY_DATABASE_URL: postgresql://app_relay:app_relay_local_dev_change_me@localhost:5432/ssot_contacts
+        run: npx vitest run --config vitest.integration.config.ts
+
   secrets-scan:
     name: gitleaks
     runs-on: ubuntu-latest

@@ -24,18 +24,39 @@ Semgrep) y CI configurados.
   `dependency-cruiser` (`domain-is-pure`, `domain-no-external-deps`,
   `domain-no-node-core`, `no-llm-in-domain`).
 
-**Fase 2 — Anillo 1 (Casos de uso y aplicación), en curso.** `packages/application` implementa:
+**Fase 2 — Anillo 1 (Casos de uso y aplicación).** Cerrada. `packages/application` implementa:
 - `ActorContext` (RT-01): `ownerId` resuelto siempre del contexto verificado,
   nunca de un parámetro suelto.
 - Puertos de salida: `ContactRepositoryPort`, `ContactQueryPort` (un puerto
-  por agregado, DTO planos, ADR-19a), `ContactProviderPort` (declarado,
-  Google People API llega en Fase 3), `OutboxPort` (RT-04). Puertos diferidos
-  `LlmPort`/`EmbeddingPort` declarados sin adaptador (ADR-20).
+  por agregado, DTO planos, ADR-19a), `ContactProviderPort`, `OutboxPort`
+  (RT-04). Puertos diferidos `LlmPort`/`EmbeddingPort` declarados sin
+  adaptador (ADR-20).
 - `CrearContacto` (UC-01) orquestando dominio + puertos, probado con dobles
   de prueba en memoria (`test/doubles/`), sin infraestructura real.
 - `dependency-cruiser` extiende `application-no-external-deps` y
   `application-no-node-core`: el anillo 1 tampoco puede importar Node core
   ni paquetes npm arbitrarios (solo `@ssot/domain` + `neverthrow`).
+
+**Fase 3 — Anillo 2 (Infraestructura y persistencia), en curso.** `packages/infrastructure` implementa:
+- Esquema Drizzle de las 16 tablas activas (`src/db/schema/`) + migraciones
+  en `infra/migrations/` (ver su README para el detalle de cada una).
+- RLS `FORCE` + `WITH CHECK` en las 16 tablas, `SET LOCAL app.current_user_id`
+  parametrizado por transacción (`withOwnerTransaction`), verificado con
+  Postgres real en `test/integration/` — incluida la aislación cruzada de
+  propietarios y el filtro de `state` con opt-in por transacción (RT-15).
+- Cifrado AES-256-GCM de tokens de proveedor (`crypto/token-cipher.ts`), IV
+  nunca reutilizado, autenticidad verificada (GCM detecta manipulación).
+- Outbox transaccional: `DrizzleOutbox` (RT-04) + `OutboxRelay` (rol
+  `app_relay` dedicado, `FOR UPDATE SKIP LOCKED`, sondeo adaptativo,
+  `LISTEN/NOTIFY`). `withTransactionalContactWrites` compone
+  `ContactRepositoryPort` + `OutboxPort` en una sola transacción —
+  atomicidad de RT-04 probada contra Postgres real, incluido el caso de
+  fallo con reversión total.
+- `GooglePeopleAdapter` (`ContactProviderPort`, UC-05/UC-06, ADR-17):
+  cliente HTTP inyectable, probado con respuestas simuladas (sin red ni
+  credenciales reales).
+- `ContactRepositoryPort`/`ContactQueryPort` implementados contra Postgres
+  real, cerrando el anillo para UC-01.
 
 **Ubicación del workflow de CI.** `Reto2/Solucion` es un subdirectorio de un
 monorepo que aloja varios retos. GitHub Actions **solo** descubre workflows
@@ -53,7 +74,14 @@ pnpm install
 
 # Infraestructura local (Postgres + Redis)
 cp infra/.env.example infra/.env
-docker compose -f infra/docker-compose.yml up -d
+# Si el 5432 local ya está ocupado (p. ej. un Postgres nativo instalado),
+# cambia POSTGRES_PORT en infra/.env (y los *_URL) a otro puerto libre, p. ej. 5433.
+docker compose -f infra/docker-compose.yml --env-file infra/.env up -d
+# app_rw y app_relay se crean solos via docker-entrypoint-initdb.d (infra/roles/)
+# la primera vez que se crea el volumen.
+
+# Migraciones (16 tablas + RLS + extensiones + disparador del Outbox)
+pnpm --filter @ssot/infrastructure run db:migrate
 
 # Verificación (Nivel 0) — el orden importa: build antes de typecheck
 pnpm run lint
@@ -61,6 +89,9 @@ pnpm run build      # emite dist/ de cada paquete
 pnpm run typecheck  # los paquetes del workspace se resuelven via dist/, no via src/
 pnpm run dep-cruise
 pnpm run test       # vitest transpila TS on-the-fly; no depende de dist/
+
+# Pruebas de integración de infraestructura (requieren Postgres arriba y migrado)
+pnpm --filter @ssot/infrastructure run test:integration
 ```
 
 **Contrato de resolución de paquetes.** `main`/`types`/`exports` de cada

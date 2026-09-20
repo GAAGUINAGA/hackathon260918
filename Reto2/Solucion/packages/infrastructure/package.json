@@ -16,14 +16,22 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "test:integration": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
     "@ssot/application": "workspace:*",
-    "@ssot/domain": "workspace:*"
+    "@ssot/domain": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.23.0"
   },
-  "devDependencies": {},
   "files": [
     "dist"
-  ]
+  ],
+  "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.10"
+  }
 }

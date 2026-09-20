@@ -144,6 +144,43 @@ export class Contact {
   }
 
   /**
+   * Reconstrucción de confianza para infraestructura (Fase 3): rehidrata un
+   * `Contact` completo (incluidos `state`/`status`/`version`/`withdrawnAt`)
+   * desde una fila ya persistida. Nunca revalida — los invariantes ya se
+   * comprobaron cuando el contacto se creó o mutó por última vez. Nunca
+   * debe usarse con datos de origen externo — esa ruta es `create`.
+   */
+  static restore(params: {
+    readonly id: string;
+    readonly ownerId: string;
+    readonly state: boolean;
+    readonly status: ContactStatus;
+    readonly withdrawnAt: Date | null;
+    readonly version: number;
+    readonly displayName: string | null;
+    readonly company: string | null;
+    readonly title: string | null;
+    readonly notes: string | null;
+    readonly emails: readonly ContactEmailEntry[];
+    readonly phones: readonly ContactPhoneEntry[];
+  }): Contact {
+    return new Contact(
+      params.id,
+      params.ownerId,
+      params.state,
+      params.status,
+      params.withdrawnAt,
+      params.version,
+      params.displayName,
+      params.company,
+      params.title,
+      params.notes,
+      params.emails,
+      params.phones,
+    );
+  }
+
+  /**
    * UC-13: retiro lógico (RT-14). Nunca un DELETE; el cascade lo aplica el
    * caso de uso (RT-18). Idempotente: un contacto ya retirado se devuelve
    * sin cambios (preserva el `withdrawnAt` original) en lugar de fabricar

@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789862063561,
+      "tag": "0000_jittery_kat_farrell",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789862074096,
+      "tag": "0001_rls_extensions_outbox_trigger",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789863383300,
+      "tag": "0002_outbox_relay_role_policy",
+      "breakpoints": true
+    }
+  ]
+}

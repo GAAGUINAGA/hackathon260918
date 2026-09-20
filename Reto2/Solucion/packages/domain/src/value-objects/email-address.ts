@@ -74,6 +74,22 @@ export class EmailAddress {
 
     return ok(new EmailAddress(trimmed, localPart, domain, emailLocalKey, emailDomainKey));
   }
+
+  /**
+   * Reconstrucción de confianza para infraestructura (Fase 3): rehidrata un
+   * `EmailAddress` desde datos ya validados y persistidos, sin re-ejecutar
+   * las reglas de fábrica. Nunca debe usarse con datos de origen externo —
+   * esa ruta es siempre `create`.
+   */
+  static restore(params: {
+    readonly value: string;
+    readonly localPart: string;
+    readonly domain: string;
+    readonly emailLocalKey: string;
+    readonly emailDomainKey: string;
+  }): EmailAddress {
+    return new EmailAddress(params.value, params.localPart, params.domain, params.emailLocalKey, params.emailDomainKey);
+  }
 }
 
 /**
