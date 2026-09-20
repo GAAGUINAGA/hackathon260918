@@ -21,6 +21,18 @@ rules:
       estrictamente necesario, o corregir el tipo.
     pattern-regex: '@ts-ignore'
 
+  - id: ssot-no-dangerously-set-inner-html
+    languages: [typescript]
+    severity: ERROR
+    message: >-
+      dangerouslySetInnerHTML detectado. Prohibido en apps/web (CLAUDE.md
+      Fase 5): abre la puerta a XSS almacenado via campos de contacto
+      (notas, nombre) que el usuario u otro proveedor controla.
+    pattern-regex: 'dangerouslySetInnerHTML'
+    paths:
+      include:
+        - "apps/web/src/**"
+
   - id: ssot-no-hardcoded-secret-assignment
     languages: [typescript]
     severity: WARNING

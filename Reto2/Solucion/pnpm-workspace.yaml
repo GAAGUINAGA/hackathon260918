@@ -8,3 +8,6 @@ allowBuilds:
   # necesidad funcional).
   '@scarf/scarf': false
   esbuild: true
+  # msw: el postinstall solo genera localmente `public/mockServiceWorker.js`
+  # (el worker que intercepta fetch en tests/dev); no hace red ni telemetria.
+  msw: true

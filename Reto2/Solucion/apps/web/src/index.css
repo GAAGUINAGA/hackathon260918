@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@import "@ssot/design-tokens/tokens.css";
+
+/* ADR-02/ADR-12: mapea los tokens compartidos a utilidades de Tailwind
+   (bg-background, text-foreground, bg-primary, border-border, ...). */
+@theme inline {
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-destructive: var(--color-destructive);
+  --color-destructive-foreground: var(--color-destructive-foreground);
+  --color-border: var(--color-border);
+  --color-ring: var(--color-ring);
+
+  --spacing-xs: var(--space-xs);
+  --spacing-sm: var(--space-sm);
+  --spacing-md: var(--space-md);
+  --spacing-lg: var(--space-lg);
+  --spacing-xl: var(--space-xl);
+  --spacing-2xl: var(--space-2xl);
+
+  --font-size-sm: var(--font-size-sm);
+  --font-size-base: var(--font-size-base);
+  --font-size-lg: var(--font-size-lg);
+  --font-size-xl: var(--font-size-xl);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-family-base);
+}
+
+/* WCAG 2.1 SC 2.4.7 (Focus Visible): nunca ocultar el foco sin un
+   sustituto con contraste >= 3:1 (SC 1.4.11, verificado en
+   packages/design-tokens/test/contrast.spec.ts). */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}

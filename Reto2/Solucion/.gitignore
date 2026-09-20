@@ -10,3 +10,11 @@ coverage/
 .pnpm-store/
 apps/mobile/.dart_tool/
 apps/mobile/build/
+
+# ADR-08: cliente generado desde openapi.json (orval); se regenera con
+# `pnpm run generate:api-client`, nunca se edita ni se versiona a mano.
+apps/web/src/api/generated/
+
+# ADR-08: cliente Dart generado desde openapi.json (openapi-generator +
+# dio); se regenera con `apps/mobile/tool/generate_api_client.sh`.
+apps/mobile/packages/ssot_api_client/

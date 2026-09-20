@@ -1,10 +1,16 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist",
+    "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "jsx": "react-jsx"
+    "types": ["vite/client", "node"],
+    "moduleDetection": "force",
+    "noEmit": true,
+    // Anulacion deliberada de NodeNext (tsconfig.base.json): este paquete
+    // nunca se ejecuta con el loader ESM de Node, Vite lo empaqueta. Es
+    // ademas el modo que orval genera (imports de barril sin extension).
+    "module": "ESNext",
+    "moduleResolution": "bundler"
   },
-  "include": ["src"]
+  "include": ["src", "test", "vite.config.ts", "orval.config.ts"]
 }

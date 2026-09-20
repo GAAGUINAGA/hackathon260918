@@ -1,5 +1,8 @@
 /**
  * Primitivos de accesibilidad compartidos por la consola web React
- * (aria-live, gestion de foco). Se implementa en Fase 5 (WCAG 2.1 AA, ADR-12).
+ * (ADR-02, ADR-12: WCAG 2.1 AA como criterio de aceptación).
  */
-export {};
+export { VisuallyHidden } from "./visually-hidden.js";
+export { SkipLink, type SkipLinkProps } from "./skip-link.js";
+export { AnnouncerProvider, useAnnouncer, type AnnouncePriority, type AnnouncerContextValue } from "./live-region.js";
+export { useRouteFocus } from "./use-route-focus.js";
