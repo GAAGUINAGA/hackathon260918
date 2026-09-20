@@ -98,6 +98,18 @@ class AnalyticsWorker:
     comportamiento en produccion no cambia, `_run_analytics_process` sigue
     siendo el target real del AnalyticsProcess y solo aporta el bucle de
     la cola + apertura/cierre del video.
+
+    Nota (CU-03.3): la re-lectura por `frame_idx` via
+    `CAP_PROP_POS_FRAMES` es exacta en codecs intra-frame (p.ej. MJPG),
+    pero en video inter-frame comprimido (H.264 real) el seek puede caer
+    en el keyframe mas cercano -- el overlay del HUD puede desplazarse
+    +-N frames respecto del frame inferido. Los eventos de `events.csv`
+    no se ven afectados (derivan de bboxes, no de pixeles); solo el
+    video demostrativo puede perder fidelidad visual puntual. Reemplazar
+    el seek por lectura secuencial exigiria buffer de frames intermedios
+    (ver decision de no usar `shared_memory`, planeacion_v1.2.0.md
+    Sec.3.3) y queda fuera de alcance salvo que la validacion de Fase 6
+    lo exija.
     """
 
     def __init__(
@@ -133,7 +145,14 @@ class AnalyticsWorker:
         self._capture.set(cv2.CAP_PROP_POS_FRAMES, packet.frame_idx)
         ok, frame = self._capture.read()
         if not ok:
-            return  # frame no releible puntualmente; no aborta la corrida
+            # CU-01.1 FE-01/CU-05.3: no aborta la corrida (un frame puntual
+            # no invalida el resto), pero el descarte queda trazado -- sin
+            # esto una rafaga de frames corruptos seria invisible.
+            logger.warning(
+                "frame no releible en re-lectura; se descarta",
+                extra={"extra_fields": {"frame_idx": packet.frame_idx}},
+            )
+            return
 
         tracks = self._tracker.update(
             packet.detections, packet.frame_idx, packet.timestamp

@@ -31,6 +31,27 @@ def test_to_redacted_log_dict_redacts_pii_in_metadata_strings() -> None:
     assert metadata["count"] == 3
 
 
+def test_to_redacted_log_dict_redacts_pii_in_nested_metadata() -> None:
+    event = _event_with_metadata(
+        {
+            "detail": {
+                "note": "contacto ana@example.com",
+                "history": ["revisado por ana@example.com", 5],
+            }
+        }
+    )
+
+    payload = to_redacted_log_dict(event)
+    metadata = payload["metadata"]
+    assert isinstance(metadata, dict)
+    detail = metadata["detail"]
+    assert isinstance(detail, dict)
+
+    assert "ana@example.com" not in detail["note"]
+    assert "ana@example.com" not in detail["history"][0]
+    assert detail["history"][1] == 5
+
+
 def test_to_redacted_log_dict_keeps_structural_fields_intact() -> None:
     event = _event_with_metadata({})
 

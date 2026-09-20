@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import logging
 from pathlib import Path
 
 import cv2
@@ -73,11 +74,20 @@ def test_analytics_worker_skips_packet_when_frame_is_not_readable(
     output_dir = tmp_path / "output"
     worker = AnalyticsWorker(capture, camera_config, output_dir, source_fps=10.0)
 
+    pipeline_logger = logging.getLogger("core.pipeline")
+    records: list[logging.LogRecord] = []
+    handler = logging.Handler()
+    handler.emit = records.append  # type: ignore[method-assign]
+    pipeline_logger.addHandler(handler)
     try:
         # frame_idx fuera de rango: capture.read() falla; no debe lanzar.
         worker.process(DetectionPacket(frame_idx=999, timestamp=0.0, detections=[]))
     finally:
+        pipeline_logger.removeHandler(handler)
         worker.close()
         capture.release()
 
     assert (output_dir / "events.csv").is_file()
+    assert len(records) == 1
+    assert records[0].levelno == logging.WARNING
+    assert records[0].extra_fields == {"frame_idx": 999}  # type: ignore[attr-defined]

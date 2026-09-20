@@ -38,6 +38,46 @@ def test_redact_replaces_unix_absolute_path() -> None:
     assert "<redacted>" in redacted
 
 
+def test_redact_replaces_single_segment_unix_path() -> None:
+    redacted = log_redaction.redact("guardado en /clip.mp4")
+
+    assert "/clip.mp4" not in redacted
+    assert "<redacted>" in redacted
+
+
+def test_redact_does_not_touch_slash_inside_a_word() -> None:
+    message = "velocidad 5 km/h, personas and/or vehiculos"
+
+    assert log_redaction.redact(message) == message
+
+
+def test_redact_replaces_mac_address_with_dashes() -> None:
+    redacted = log_redaction.redact("interfaz 00-1A-2B-3C-4D-5E activa")
+
+    assert "00-1A-2B-3C-4D-5E" not in redacted
+    assert "<redacted>" in redacted
+
+
+def test_redact_replaces_full_ipv6_address() -> None:
+    redacted = log_redaction.redact("origen 2001:0db8:0000:0000:0000:0000:0000:0001")
+
+    assert "2001:0db8" not in redacted
+    assert "<redacted>" in redacted
+
+
+def test_redact_replaces_compressed_ipv6_address() -> None:
+    redacted = log_redaction.redact("origen fe80::1 conectado")
+
+    assert "fe80::1" not in redacted
+    assert "<redacted>" in redacted
+
+
+def test_redact_does_not_treat_a_time_of_day_as_ipv6() -> None:
+    message = "evento a las 14:23:05 UTC"
+
+    assert log_redaction.redact(message) == message
+
+
 def test_redact_leaves_non_pii_text_untouched() -> None:
     message = "DWELL_TRIGGER en zona_cafeteria, duracion 15.20s"
 

@@ -44,6 +44,20 @@ class _FailingSink:
         pass
 
 
+class _FailingFlushSink:
+    def __init__(self) -> None:
+        self.closed = False
+
+    def emit(self, event: EventoTelemetria) -> None:
+        pass
+
+    def flush(self) -> None:
+        raise OSError("disco lleno")
+
+    def close(self) -> None:
+        self.closed = True
+
+
 def _sample_event() -> EventoTelemetria:
     return EventoTelemetria(
         frame_idx=0,
@@ -94,3 +108,25 @@ def test_exporter_close_flushes_and_closes_sinks_that_support_it() -> None:
 
     assert with_close.flushed
     assert with_close.closed
+
+
+def test_exporter_flush_isolates_a_failing_sink_from_the_others_but_raises() -> None:
+    healthy = _RecordingSink()
+    exporter = TelemetryExporter([_FailingFlushSink(), healthy])
+
+    with pytest.raises(TelemetryError):
+        exporter.flush()
+
+    assert healthy.flushed
+
+
+def test_exporter_close_still_closes_every_sink_when_a_flush_fails() -> None:
+    failing = _FailingFlushSink()
+    healthy = _RecordingSink()
+    exporter = TelemetryExporter([failing, healthy])
+
+    with pytest.raises(TelemetryError):
+        exporter.close()
+
+    assert failing.closed
+    assert healthy.closed

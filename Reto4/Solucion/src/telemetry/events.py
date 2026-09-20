@@ -61,11 +61,18 @@ class EventoTelemetria(BaseModel):
         return value
 
 
+def _redact_value(value: object) -> object:
+    if isinstance(value, str):
+        return redact(value)
+    if isinstance(value, dict):
+        return {key: _redact_value(inner) for key, inner in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_redact_value(item) for item in value]
+    return value
+
+
 def _redact_metadata(metadata: dict[str, object]) -> dict[str, object]:
-    return {
-        key: redact(value) if isinstance(value, str) else value
-        for key, value in metadata.items()
-    }
+    return {key: _redact_value(value) for key, value in metadata.items()}
 
 
 def to_redacted_log_dict(event: EventoTelemetria) -> dict[str, object]:
