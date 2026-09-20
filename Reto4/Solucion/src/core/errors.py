@@ -45,3 +45,17 @@ class ModelIntegrityError(PipelineError):
 
 class TrackerConfigError(ConfigError):
     """Config de tracking prohibida por P1 (CU-01.3 FE-01, CU-04.1 FE-03)."""
+
+
+class RenderError(PipelineError):
+    exit_code = ExitCode.RENDER_FAIL
+
+
+class TelemetryError(PipelineError):
+    exit_code = ExitCode.TELEMETRY_FAIL
+
+
+class AnalyticsCrashError(PipelineError):
+    """AnalyticsProcess termino con codigo de salida distinto de 0 (CU-04.2)."""
+
+    exit_code = ExitCode.ANALYTICS_CRASH

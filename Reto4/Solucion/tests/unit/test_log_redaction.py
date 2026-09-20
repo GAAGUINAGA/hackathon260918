@@ -1,0 +1,44 @@
+from __future__ import annotations
+
+from src.security import log_redaction
+
+
+def test_redact_replaces_email() -> None:
+    redacted = log_redaction.redact("operador: ana.gomez@example.com")
+
+    assert "ana.gomez@example.com" not in redacted
+    assert "<redacted>" in redacted
+
+
+def test_redact_replaces_mac_address() -> None:
+    redacted = log_redaction.redact("interfaz 00:1A:2B:3C:4D:5E activa")
+
+    assert "00:1A:2B:3C:4D:5E" not in redacted
+    assert "<redacted>" in redacted
+
+
+def test_redact_replaces_ipv4_address() -> None:
+    redacted = log_redaction.redact("conexion desde 192.168.1.42")
+
+    assert "192.168.1.42" not in redacted
+    assert "<redacted>" in redacted
+
+
+def test_redact_replaces_windows_absolute_path() -> None:
+    redacted = log_redaction.redact(r"video en C:\Users\ana\Desktop\clip.mp4")
+
+    assert "Users" not in redacted
+    assert "<redacted>" in redacted
+
+
+def test_redact_replaces_unix_absolute_path() -> None:
+    redacted = log_redaction.redact("video en /home/ana/videos/clip.mp4")
+
+    assert "/home/ana" not in redacted
+    assert "<redacted>" in redacted
+
+
+def test_redact_leaves_non_pii_text_untouched() -> None:
+    message = "DWELL_TRIGGER en zona_cafeteria, duracion 15.20s"
+
+    assert log_redaction.redact(message) == message

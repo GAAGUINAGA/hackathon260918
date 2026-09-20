@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Literal
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from src.security.log_redaction import redact
 
 EventType = Literal[
     "DWELL_TRIGGER",
@@ -56,3 +59,30 @@ class EventoTelemetria(BaseModel):
         if value is not None and value != value.strip():
             raise ValueError("el valor no debe tener espacios al inicio/final")
         return value
+
+
+def _redact_metadata(metadata: dict[str, object]) -> dict[str, object]:
+    return {
+        key: redact(value) if isinstance(value, str) else value
+        for key, value in metadata.items()
+    }
+
+
+def to_redacted_log_dict(event: EventoTelemetria) -> dict[str, object]:
+    """Serializa `event` para logging, con PII redactada de `metadata`.
+
+    Los campos estructurales (`camera_id`, `zone_name`) son identificadores
+    de configuracion, no PII; solo `metadata` es de origen libre (rellenado
+    por los `RuleHandler`) y se redacta campo a campo (P1 Sec.9.1,
+    Information disclosure).
+    """
+    payload = event.model_dump(mode="json")
+    payload["metadata"] = _redact_metadata(event.metadata)
+    return payload
+
+
+def emit_event(event: EventoTelemetria, logger: logging.Logger) -> None:
+    """Registra `event` en `logger` (formato JSON estructurado) con PII redactada."""
+    logger.info(
+        "evento_telemetria", extra={"extra_fields": to_redacted_log_dict(event)}
+    )

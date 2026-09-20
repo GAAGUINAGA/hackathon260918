@@ -16,6 +16,7 @@ import cv2
 import numpy as np
 import openvino as ov
 
+from src.core.errors import ModelIntegrityError
 from src.security.model_integrity import verify_sha256
 
 PERSON_CLASS_ID = 0
@@ -107,3 +108,26 @@ class Detector:
         result = self._compiled_model([input_tensor])
         raw_output = result[self._output_port]
         return postprocess(raw_output, self._confidence_threshold, self._iou_threshold)
+
+
+def _find_model_xml(model_dir: Path) -> Path:
+    xml_files = sorted(model_dir.glob("*.xml"))
+    if len(xml_files) != 1:
+        raise ModelIntegrityError(
+            f"{model_dir}: se esperaba exactamente 1 archivo .xml, "
+            f"se encontraron {len(xml_files)}"
+        )
+    return xml_files[0]
+
+
+def build_detector(
+    model_dir: Path,
+    confidence_threshold: float = 0.35,
+    iou_threshold: float = 0.5,
+    device: str = "CPU",
+) -> Detector:
+    """Construye un `Detector` a partir de un directorio exportado
+    (`CameraConfig.model.path`, ver `src/ai/export_openvino.py`)."""
+    xml_path = _find_model_xml(model_dir)
+    sums_path = model_dir / "SHA256SUMS"
+    return Detector(xml_path, sums_path, confidence_threshold, iou_threshold, device)
